@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,17 +64,26 @@ namespace TP4_Loi_Normale
 
             foreach (String range in test.Split('/'))
             {
-                
+               List<double> rangeNombre = new List<double>();
                 foreach (String nombre in range.Split(' '))
                 {
-
+                   rangeNombre.Add(double.Parse("0" + nombre , CultureInfo.InvariantCulture));
                 }
+                tableLoiNormale.Add(rangeNombre);
             }
 
+           foreach (List<double> ld in tableLoiNormale)
+           {
+              foreach (double d in ld)
+              {
+                 Console.Out.Write(d + " ");
+              }
+              Console.Out.WriteLine();
+           }
 
 
+ 
 
-            
         }
     }
 }
