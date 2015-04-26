@@ -13,6 +13,7 @@ namespace TP4_Loi_Normale
 {
     public partial class Form1 : Form
     {
+        List<List<double>> tableLoiNormale;
         public Form1()
         {
             InitializeComponent();
@@ -60,30 +61,98 @@ namespace TP4_Loi_Normale
 "/.99997 .99997 .99997 .99997 .99997 .99998 .99998 .99998 .99998 .99998";
 
             String[] listeRangees = test.Split('/');
-            List<List<double>> tableLoiNormale = new List<List<double>>();
+            tableLoiNormale = new List<List<double>>();
 
             foreach (String range in test.Split('/'))
             {
-               List<double> rangeNombre = new List<double>();
+                List<double> rangeNombre = new List<double>();
                 foreach (String nombre in range.Split(' '))
                 {
-                   rangeNombre.Add(double.Parse("0" + nombre , CultureInfo.InvariantCulture));
+                    rangeNombre.Add(double.Parse("0" + nombre, CultureInfo.InvariantCulture));
                 }
                 tableLoiNormale.Add(rangeNombre);
             }
-
-           foreach (List<double> ld in tableLoiNormale)
-           {
-              foreach (double d in ld)
-              {
-                 Console.Out.Write(d + " ");
-              }
-              Console.Out.WriteLine();
-           }
-
-
- 
-
         }
+
+        protected void CalculerProabilite(object sender, EventArgs e)
+        {
+            foreach (Control c in this.Controls)
+            {
+                TextBox tbx = c as TextBox;
+                if (c != null)
+                    c.Text = c.Text.Replace(',', '.');
+            }
+
+            try
+            {
+                double moyenne = double.Parse(TBX_Moyenne.Text, CultureInfo.InvariantCulture);
+                double ecartType = double.Parse(TBX_EcartType.Text, CultureInfo.InvariantCulture);
+                double a = double.Parse(TBX_A.Text, CultureInfo.InvariantCulture);
+                double coteZa = (a - moyenne) / ecartType;
+                double resultat = 0;
+
+                if (RBTN_LessThanA.Checked)
+                {
+                    resultat = AireSousLaCourbe(coteZa);
+                    LBL_Result.Text = "La probabilité que X soit plus petit que a est de ";
+                }
+
+                if (RBTN_BiggerThanA.Checked)
+                {
+                    resultat = 1 - AireSousLaCourbe(coteZa);
+                    LBL_Result.Text = "La probabilité que X soit plus grand que a est de ";
+                }
+
+                if (RBTN_BetweenTwo.Checked)
+                {
+                    double b = double.Parse(TBX_B.Text, CultureInfo.InvariantCulture);
+                    double coteZb = (b - moyenne) / ecartType;
+                    if (coteZa > coteZb)
+                        MessageBox.Show("Incohérence des valeurs : a est plus grand que b");
+                    else
+                        resultat = 1 - (AireSousLaCourbe(coteZa) + (1 - AireSousLaCourbe(coteZb)));
+                    LBL_Result.Text = "La probabilité que X soit entre a et b est de ";
+                }
+
+                resultat = ((double)((int)(resultat * 10000))) / 100;
+                LBL_Result.Text += resultat.ToString() + "%";
+            }
+            catch
+            {
+                MessageBox.Show("Un ou plusieurs paramètre(s) a/ont été entré(s) incorrectement");
+            }
+        }
+
+
+        protected double AireSousLaCourbe(double coteZ)
+        {
+            if (coteZ > 4.1)
+                return 1;
+            else if (coteZ < -4.1)
+                    return 0;
+            else if (coteZ >= 0 && coteZ < 4.1)
+                return tableLoiNormale[(int)(coteZ * 10)][((int)(coteZ * 100)) % 10];
+            else
+                return 1 - tableLoiNormale[(int)(Math.Abs(coteZ) * 10)][((int)(Math.Abs(coteZ) * 100)) % 10];
+            //else
+            //{
+            //    MessageBox.Show("La valeur de la cote Z n'est pas valide \nElle doit se situé entre -4.1 et 4.1 inclusivement");
+            //    return 0;
+            //}
+        }
+
+        private void RBTN_BetweenTwo_CheckedChanged(object sender, EventArgs e)
+        {
+            LBL_b.Visible = TBX_B.Visible = RBTN_BetweenTwo.Checked;
+        }
+
+        private void Alpha_Filter(object sender, KeyPressEventArgs e)
+        {
+            String allowedCharacters = "1234567890-.,";
+
+            if (!allowedCharacters.Contains(e.KeyChar) && e.KeyChar != 8)
+                e.Handled = true;
+        }
+
     }
 }
