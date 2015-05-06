@@ -18,7 +18,7 @@ namespace TP4_Loi_Normale
         {
             InitializeComponent();
 
-            String test = ".50000 .50399 .50798 .51197 .51595 .51994 .52392 .52790 .53188 .53586" +
+            String valeursDeLaTable = ".50000 .50399 .50798 .51197 .51595 .51994 .52392 .52790 .53188 .53586" +
 "/.53983 .54380 .54776 .55172 .55567 .55962 .56356 .56749 .57142 .57535" +
 "/.57926 .58317 .58706 .59095 .59483 .59871 .60257 .60642 .61026 .61409" +
 "/.61791 .62172 .62552 .62930 .63307 .63683 .64058 .64431 .64803 .65173" +
@@ -60,22 +60,27 @@ namespace TP4_Loi_Normale
 "/.99995 .99995 .99996 .99996 .99996 .99996 .99996 .99996 .99997 .99997" +
 "/.99997 .99997 .99997 .99997 .99997 .99998 .99998 .99998 .99998 .99998";
 
-            String[] listeRangees = test.Split('/');
+            //Sépare les rangés
+            String[] listeRangees = valeursDeLaTable.Split('/');
             tableLoiNormale = new List<List<double>>();
 
-            foreach (String range in test.Split('/'))
+            //Sépare les colonnes
+            foreach (String range in valeursDeLaTable.Split('/'))
             {
+                //Ajoute une valeur
                 List<double> rangeNombre = new List<double>();
                 foreach (String nombre in range.Split(' '))
                 {
                     rangeNombre.Add(double.Parse("0" + nombre, CultureInfo.InvariantCulture));
                 }
+                //Ajoute une rangé
                 tableLoiNormale.Add(rangeNombre);
             }
         }
 
         protected void CalculerProabilite(object sender, EventArgs e)
         {
+            //Remplace toutes les virgules par des points
             foreach (Control c in this.Controls)
             {
                 TextBox tbx = c as TextBox;
@@ -85,24 +90,28 @@ namespace TP4_Loi_Normale
 
             try
             {
+                //Déclaration des variables
                 double moyenne = double.Parse(TBX_Moyenne.Text, CultureInfo.InvariantCulture);
                 double ecartType = double.Parse(TBX_EcartType.Text, CultureInfo.InvariantCulture);
                 double a = double.Parse(TBX_A.Text, CultureInfo.InvariantCulture);
                 double coteZa = (a - moyenne) / ecartType;
                 double resultat = 0;
 
+                //P(x < a)
                 if (RBTN_LessThanA.Checked)
                 {
                     resultat = AireSousLaCourbe(coteZa);
                     LBL_Result.Text = "La probabilité que X soit plus petit que a est de ";
                 }
 
+                //P(X > a)
                 if (RBTN_BiggerThanA.Checked)
                 {
                     resultat = 1 - AireSousLaCourbe(coteZa);
                     LBL_Result.Text = "La probabilité que X soit plus grand que a est de ";
                 }
 
+                //P(a < X < b)
                 if (RBTN_BetweenTwo.Checked)
                 {
                     double b = double.Parse(TBX_B.Text, CultureInfo.InvariantCulture);
@@ -114,7 +123,8 @@ namespace TP4_Loi_Normale
                     LBL_Result.Text = "La probabilité que X soit entre a et b est de ";
                 }
 
-                resultat = ((double)((int)(resultat * 10000))) / 100;
+                //Met le résultat en pourcentage
+                resultat = Math.Round(resultat * 100, 2, MidpointRounding.AwayFromZero);
                 LBL_Result.Text += resultat.ToString() + "%";
             }
             catch
@@ -123,29 +133,26 @@ namespace TP4_Loi_Normale
             }
         }
 
-
+        //Renovoie l'aire sous la courbe
         protected double AireSousLaCourbe(double coteZ)
         {
             if (coteZ > 4.1)
                 return 1;
             else if (coteZ < -4.1)
                     return 0;
-            else if (coteZ >= 0 && coteZ < 4.1)
+            else if (coteZ >= 0)
                 return tableLoiNormale[(int)(coteZ * 10)][((int)(coteZ * 100)) % 10];
             else
                 return 1 - tableLoiNormale[(int)(Math.Abs(coteZ) * 10)][((int)(Math.Abs(coteZ) * 100)) % 10];
-            //else
-            //{
-            //    MessageBox.Show("La valeur de la cote Z n'est pas valide \nElle doit se situé entre -4.1 et 4.1 inclusivement");
-            //    return 0;
-            //}
         }
 
+        //Rend visible le champs b si P(a < X < b) est coché
         private void RBTN_BetweenTwo_CheckedChanged(object sender, EventArgs e)
         {
             LBL_b.Visible = TBX_B.Visible = RBTN_BetweenTwo.Checked;
         }
 
+        //Empêche l'utilisateur d'entrer des lettres et autre symboles non nécéssaires
         private void Alpha_Filter(object sender, KeyPressEventArgs e)
         {
             String allowedCharacters = "1234567890-.,";
